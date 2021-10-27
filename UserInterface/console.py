@@ -1,4 +1,4 @@
-from Domain.inventar import get_str, get_locatie, modif, creeaza_obiect
+from Domain2.inventar2 import get_str, get_locatie, modif, creeaza_obiect
 from Logic.crud import create, update, delete
 
 
