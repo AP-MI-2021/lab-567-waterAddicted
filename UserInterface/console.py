@@ -5,7 +5,7 @@ from Logic.crud import create, update, delete
 def show_menu():
     print('2.1   CRUD.')
     print('a.    Afisare.')
-    print ('x.    Exit.')
+    print ('x.   Exit.')
 
 def handle_add(obiecte):
     id_obiect = int(input('Dati id-ul obiectului.'))
