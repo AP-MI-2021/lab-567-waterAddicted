@@ -4,6 +4,7 @@ from Logic.crud import create, update, delete
 
 def show_menu():
     print('2.1   CRUD.')
+    print('a.    Afisare.')
     print ('x.    Exit.')
 
 def handle_add(obiecte):
@@ -52,7 +53,7 @@ def handle_crud(obiecte):
         elif optiune == 'a':
             handle_show_all(obiecte)
         elif optiune == 'b':
-            break
+            return obiecte
         else:
             print('Optiune invalida.')
 
@@ -71,6 +72,8 @@ def run_ui(obiecte):
         optiune = input('Optiunea aleasa: ')
         if optiune == '2.1':
             obiecte = handle_crud(obiecte)
+        elif optiune == 'a':
+            handle_show_all(obiecte)
         elif optiune == 'x':
             break
         else:
