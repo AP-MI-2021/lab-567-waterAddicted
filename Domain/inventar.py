@@ -60,13 +60,8 @@ def get_locatie(obiect):
 def get_str(obiect):
     return f'Obiectul cu id-ul {get_id(obiect)}, denumit {get_nume(obiect)}, cu descrierea {get_descriere(obiect)},care costa {get_pret(obiect)},avand locul achiztionarii {get_locatie(obiect)}'
 
-def modif(obiect,key,value):
-    """
-    Modifica o anumita  data a unui obiect.
-    :param obiect: obiect
-    :param key: numele parametrului pe care il modificam
-    :param value: valoarea cu care modificam parametrul key
-    :return:
-    """
-    obiect[key] = value
+
+
+
+
 

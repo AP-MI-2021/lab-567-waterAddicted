@@ -1,41 +1,87 @@
-from Domain2.inventar2 import get_str, get_locatie, modif, creeaza_obiect
+from Domain.inventar import get_str, get_locatie, creeaza_obiect, get_pret, get_descriere
 from Logic.crud import create, update, delete
+from Logic.ordonare import ordonare_obiecte
+from Logic.locuri_distincte import loc_sep
+from Logic.mdificare import modif
 
 
 def show_menu():
+    '''
+    Functia care afiseaza meniul pentru utilizator.
+    '''
     print('2.1   CRUD.')
-    print('a.    Afisare.')
+    print('2.2   Mutarea obiectelor dintr-o locatie data in alta.')
+    print('2.3   Concatenarea unui string citit la toate descrierile obiectelor cu prețul mai mare decât o valoare citită.')
+    print('2.4   Determinarea celui mai mare preț pentru fiecare locație.')
+    print('2.5   Ordonarea obiectelor crescător după prețul de achiziție.')
+    print('2.6   Afișarea sumelor prețurilor pentru fiecare locație.')
+    print('a.    Afisare')
     print('x.    Exit.')
 
 def handle_add(obiecte):
-    id_obiect = int(input('Dati id-ul obiectului.'))
-    nume = input('Dati numele obiectului.')
-    descriere = input('Dati descrierea obiectului.')
-    pret = int(input('Dati pretul obiectului.'))
-    locatie = input('Dati locatia obiectului obiectului.')
-    return create(obiecte,id_obiect,nume,descriere,pret,locatie)
-
+    '''
+    Introduce un obiect inlista de obiecte.
+    :param obiecte: lista de obiecte in care se aduaga obiecte
+    :return: lista de obiecte in care se adauga noul obiect introdus de catre utilizator
+    '''
+    try:
+        id_obiect = int(input('Dati id-ul obiectului:'))
+        nume = input('Dati numele obiectului:')
+        descriere = input('Dati descrierea obiectului:')
+        pret = float(input('Dati pretul obiectului:'))
+        locatie = input('Dati locatia obiectului obiectului:')
+        print('Adaugarea s-a efectuat cu succes!')
+        return create(obiecte,id_obiect,nume,descriere,pret,locatie)
+    except ValueError as ve:
+        print('Erorare:', ve)
 
 def handle_show_all(obiecte):
+    '''
+    Afisarea tuturor obiectelor din lista de obiecte.
+    :param obiecte: lista de biecte
+    :return:
+    '''
     for obiect in obiecte:
         print(get_str(obiect))
 
 
 def handle_modify(obiecte):
-    id_obiect = int(input('Dati id-ul obiectului care se actualizeaza.'))
-    nume = input('Dati noul nume al obiectului.')
-    descriere = input('Dati noua descrierea a obiectului.')
-    pret = float(input('Dati noul pret al obiectului.'))
-    locatie = input('Dati noua locatie a obiectului.')
-    return update(obiecte,creeaza_obiect(id_obiect,nume,descriere,pret,locatie))
+    '''
+    Da update unui obiect existent in lista, care este ales de catre utilizator dupa id-ul acestuia.
+    :param obiecte: lista de obiecte
+    :return: lista de obiecte cu un anumit element modificat
+    '''
+    try:
+        id_obiect = int(input('Dati id-ul obiectului care se actualizeaza:'))
+        nume = input('Dati noul nume al obiectului:')
+        descriere = input('Dati noua descrierea a obiectului:')
+        pret = float(input('Dati noul pret al obiectului:'))
+        locatie = input('Dati noua locatie a obiectului:')
+        print(f'Modificarea obiectului cu id-ul: {id_obiect},s-a efectuat succes!')
+        return update(obiecte,creeaza_obiect(id_obiect,nume,descriere,pret,locatie))
+    except ValueError as ve:
+        print('Eroare:',ve)
 
 def handle_delete(obiecte):
-    id_obiect = int(input('Dati id-ul obiectului care se va sterge:'))
-    return delete(obiecte,id_obiect)
-
+    '''
+    Sterge un anumit obiect extent in lista,dupa id-ul acestuia.
+    :param obiecte: lista de obiecte
+    :return: lista de obiecte construita prin excluderea elementului sters
+    '''
+    try:
+        id_obiect = int(input('Dati id-ul obiectului care se va sterge:'))
+        print(f'Stergerea obiectului cu id-ul: {id_obiect},s-a efectuat cu succes!')
+        return delete(obiecte,id_obiect)
+    except ValueError as ve:
+        print('Eroare',ve)
 
 
 def handle_crud(obiecte):
+    '''
+    Submeniu pentru operarea calculelor CRUD.
+    :param obiecte: lista de  obiecte
+    :return:se va returna in cazul in care utilizatorul selecteaza optounea 'b' ,lista de obiecte modificata de operatiile CRUD
+    '''
     while True:
         print('1.   Adaugare.')
         print('2.   Modificare.')
@@ -59,19 +105,108 @@ def handle_crud(obiecte):
 
 
 def handle_mutare_obicete_din_loc_in_altul(obiecte,fosta_loc,noua_loc):
+    '''
+    Muta toate obiectele dintr-un loc existent in care se afla obiectele(introsdus de utilizator) in unul nou(introdus de utilizator).
+    :param obiecte:  lista de obiecte
+    :param fosta_loc:   locatia initiala a obiectelor care vor fi mutate in alta locatie
+    :param noua_loc:    locatia noua in care vor fi mutate toate
+    :return:
+    '''
     for obiect in obiecte:
         if get_locatie(obiect) == fosta_loc:
             modif(obiect,'locatie',noua_loc)
 
+    return  obiecte
 
+
+def handle_concatenare_descriere(obiecte, pretul, str):
+    '''
+
+    :param obiecte: lista de obiecte
+    :param pretul: pretul pe care obiectele trebuie sa il depaseasca ca sa primeasca descrierea furnizata de catre utilizator.
+    :param str: adaosul din descriere(introdus de utilizator) care se va aplica pentru obiectele are  caror pret depsasesc pretul introdus de utilizator
+    :return:lista  modificata dupa criteriul de mai sus(adaosul in descriere de text venit din partea utilizatorului)
+    '''
+    for obiect in obiecte:
+        if get_pret(obiect) > pretul:
+            modif(obiect,'desc',get_descriere(obiect)+str)
+
+    return obiecte
+
+
+def handle_cel_mai_mare_pret_din_ficare_loc(obiecte):
+    '''
+    O sa calculeze cel mai mai mare pret din fiecare locatie.
+    :param obiecte: lista de obiecte
+    :return:
+    '''
+    lst = loc_sep(obiecte)
+    for i in lst:
+        p_maxim = -1
+        for obiect in obiecte:
+            if get_locatie(obiect) == i:
+                if p_maxim<get_pret(obiect):
+                    p_maxim= get_pret(obiect)
+
+        print(f'Pretul cel mai mare din {i} este {p_maxim}')
+
+
+def handle_ordonare_cresc_dupa_pret(obiecte):
+    '''
+    Ordoneaza crescator lista de obiecte in functie de pretul acestora
+    :param obiecte: lista de obiecte
+    :return: lista de obiecte ordonata crscator in functie de pretul obiectelor
+    '''
+    return ordonare_obiecte(obiecte)
+
+
+def handle_afisare_sum_pret_loc(obiecte):
+    '''
+    Afiseaza suma preturilor obiectelor din fiecare loc.
+    :param obiecte: lista de obiecte.
+    :return:
+    '''
+    lst = loc_sep(obiecte)
+    for i in lst:
+        suma = 0
+        for obiect in obiecte:
+            if get_locatie(obiect) == i:
+                suma = suma + get_pret(obiect)
+
+        print(f'Suma tutror obiectelor din zona {i} este {suma}')
 
 
 def run_ui(obiecte):
+    '''
+    Opereaza mediul principal de optiuni pentru utilizator.
+    :param obiecte:lista de obiecte
+    :return:
+    '''
     while True:
         show_menu()
         optiune = input('Optiunea aleasa: ')
         if optiune == '2.1':
-            obiecte = handle_crud(obiecte)
+            obiecte = handle_crud(obiecte,)
+        elif optiune == '2.2':
+            fosta_loc = input('Introduceti fosta locatie:')
+            noua_loc = input('Introduceti noua locatie:')
+            obiecte = handle_mutare_obicete_din_loc_in_altul(obiecte,fosta_loc,noua_loc)
+            print(f'Toate obiectele care se afla in locatia {fosta_loc} au fost mutate cu succes in locatia {noua_loc}!')
+        elif optiune =='2.3':
+            try:
+                pretul = float(input('Intorduceti pretul pentru care pretul obiectelor trebuie sa fie mai mare ca sa primeasca o anumta descriere:'))
+                str = input(f'Introduceti descrierea care se va adauga tuturor obiectelor a caror pret depaseste {pretul} : ')
+                obiecte = handle_concatenare_descriere(obiecte,pretul,str)
+                print(f'Descirearea " {str} "a fost adaugata cu succes tuturor obiectelora caror pret este mai mare decat {pretul}!')
+            except ValueError as ve:
+                print('Eroare!',ve)
+        elif optiune == '2.4':
+            handle_cel_mai_mare_pret_din_ficare_loc(obiecte)
+        elif optiune == '2.5':
+            obiecte = handle_ordonare_cresc_dupa_pret(obiecte)
+            print('Ordonarea obiectelor in functie de pret a avut loc cu succes.')
+        elif optiune == '2.6':
+            handle_afisare_sum_pret_loc(obiecte)
         elif optiune == 'a':
             handle_show_all(obiecte)
         elif optiune == 'x':

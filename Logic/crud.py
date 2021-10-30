@@ -1,5 +1,5 @@
-from Domain2.inventar2 import creeaza_obiect
-from Domain2.inventar2 import get_id
+from Domain.inventar import creeaza_obiect
+from Domain.inventar import get_id
 
 def create(lst_obiecte,id_obiect: int,nume,desccriere,pret,locatie):
     """
