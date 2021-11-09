@@ -1,8 +1,15 @@
 from Domain.inventar import get_str, get_locatie, creeaza_obiect, get_pret, get_descriere
+from Logic.change_location import change_location
+from Logic.concatenare import concatenare
 from Logic.crud import create, update, delete
 from Logic.ordonare import ordonare_obiecte
 from Logic.locuri_distincte import loc_sep
 from Logic.mdificare import modif
+
+def list_versions(versions_list, current_version, lista):
+    versions_list.append(lista)
+    current_version +=1
+    return versions_list, current_version
 
 
 def show_menu():
@@ -15,6 +22,7 @@ def show_menu():
     print('2.4   Determinarea celui mai mare preț pentru fiecare locație.')
     print('2.5   Ordonarea obiectelor crescător după prețul de achiziție.')
     print('2.6   Afișarea sumelor prețurilor pentru fiecare locație.')
+    print('2.7   Undo.')
     print('a.    Afisare')
     print('x.    Exit.')
 
@@ -34,6 +42,7 @@ def handle_add(obiecte):
         return create(obiecte,id_obiect,nume,descriere,pret,locatie)
     except ValueError as ve:
         print('Erorare:', ve)
+    return obiecte
 
 def handle_show_all(obiecte):
     '''
@@ -76,7 +85,7 @@ def handle_delete(obiecte):
         print('Eroare',ve)
 
 
-def handle_crud(obiecte):
+def handle_crud(obiecte,versions_list, current_version):
     '''
     Submeniu pentru operarea calculelor CRUD.
     :param obiecte: lista de  obiecte
@@ -92,14 +101,17 @@ def handle_crud(obiecte):
         optiune = input('Optiune aleasa: ')
         if optiune == '1':
             obiecte = handle_add(obiecte)
+            versions_list, current_version = list_versions(versions_list, current_version, obiecte)
         elif optiune == '2':
             obiecte = handle_modify(obiecte)
+            versions_list, current_version = list_versions(versions_list, current_version, obiecte)
         elif optiune == '3':
             obiecte =handle_delete(obiecte)
+            versions_list, current_version = list_versions(versions_list, current_version, obiecte)
         elif optiune == 'a':
             handle_show_all(obiecte)
         elif optiune == 'b':
-            return obiecte
+            return obiecte,versions_list,current_version
         else:
             print('Optiune invalida.')
 
@@ -112,11 +124,11 @@ def handle_mutare_obicete_din_loc_in_altul(obiecte,fosta_loc,noua_loc):
     :param noua_loc:    locatia noua in care vor fi mutate toate
     :return:
     '''
-    for obiect in obiecte:
-        if get_locatie(obiect) == fosta_loc:
-            modif(obiect,'locatie',noua_loc)
-
-    return  obiecte
+    try:
+        return change_location(obiecte, fosta_loc, noua_loc)
+    except ValueError as ve:
+        print('Eroare: ', ve)
+    return obiecte
 
 
 def handle_concatenare_descriere(obiecte, pretul, str):
@@ -127,11 +139,7 @@ def handle_concatenare_descriere(obiecte, pretul, str):
     :param str: adaosul din descriere(introdus de utilizator) care se va aplica pentru obiectele are  caror pret depsasesc pretul introdus de utilizator
     :return:lista  modificata dupa criteriul de mai sus(adaosul in descriere de text venit din partea utilizatorului)
     '''
-    for obiect in obiecte:
-        if get_pret(obiect) > pretul:
-            modif(obiect,'desc',get_descriere(obiect)+str)
-
-    return obiecte
+    return concatenare(obiecte, str, pretul)
 
 
 def handle_cel_mai_mare_pret_din_ficare_loc(obiecte):
@@ -176,21 +184,36 @@ def handle_afisare_sum_pret_loc(obiecte):
         print(f'Suma tutror obiectelor din zona {i} este {suma}')
 
 
+
+def handle_undo(versions_list, current_version):
+    if current_version > 1:
+        current_version -=1
+        del versions_list[current_version]
+        return versions_list, current_version
+    else:
+        print('Ati ajuns la ultima versiune!')
+    return versions_list, current_version
+
+
+
 def run_ui(obiecte):
     '''
     Opereaza mediul principal de optiuni pentru utilizator.
     :param obiecte:lista de obiecte
     :return:
     '''
+    versions_list = [obiecte]
+    current_version = 1
     while True:
         show_menu()
         optiune = input('Optiunea aleasa: ')
         if optiune == '2.1':
-            obiecte = handle_crud(obiecte,)
+            obiecte,versions_list,current_version = handle_crud(obiecte,versions_list,current_version)
         elif optiune == '2.2':
             fosta_loc = input('Introduceti fosta locatie:')
             noua_loc = input('Introduceti noua locatie:')
             obiecte = handle_mutare_obicete_din_loc_in_altul(obiecte,fosta_loc,noua_loc)
+            versions_list,current_version = list_versions(versions_list,current_version,obiecte)
             print(f'Toate obiectele care se afla in locatia {fosta_loc} au fost mutate cu succes in locatia {noua_loc}!')
         elif optiune =='2.3':
             try:
@@ -198,15 +221,21 @@ def run_ui(obiecte):
                 str = input(f'Introduceti descrierea care se va adauga tuturor obiectelor a caror pret depaseste {pretul} : ')
                 obiecte = handle_concatenare_descriere(obiecte,pretul,str)
                 print(f'Descirearea " {str} "a fost adaugata cu succes tuturor obiectelora caror pret este mai mare decat {pretul}!')
+                versions_list, current_version = list_versions(versions_list, current_version, obiecte)
             except ValueError as ve:
                 print('Eroare!',ve)
         elif optiune == '2.4':
             handle_cel_mai_mare_pret_din_ficare_loc(obiecte)
         elif optiune == '2.5':
             obiecte = handle_ordonare_cresc_dupa_pret(obiecte)
+            versions_list, current_version = list_versions(versions_list, current_version, obiecte)
             print('Ordonarea obiectelor in functie de pret a avut loc cu succes.')
         elif optiune == '2.6':
             handle_afisare_sum_pret_loc(obiecte)
+        elif optiune == '2.7':
+            versions_list, current_version = handle_undo(versions_list, current_version)
+            obiecte = versions_list[current_version - 1]
+            print('Undo efectuat cu succes!')
         elif optiune == 'a':
             handle_show_all(obiecte)
         elif optiune == 'x':
