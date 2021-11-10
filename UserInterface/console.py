@@ -247,6 +247,7 @@ def run_ui(obiecte):
             try:
                 current_version += 1
                 obiecte = handle_redo(current_version, versions_list)
+                print("Redo!")
             except ValueError as ve:
                 current_version -= 1
                 print("Error:", ve)
