@@ -10,17 +10,13 @@ def loc_sep(obiecte):
     lst = []
     for obiect in obiecte:
         lst.append(get_locatie(obiect))
-
     new_lst = []
-    for i in range(0,len(lst) - 1):
-        for j in range(i + 1, len(lst)):
-            if lst[i] == lst[j]:
-                if len(new_lst) > 0:
-                    if ver_rep(new_lst,lst[i]):
-                        new_lst.append(lst[i])
+    for i in lst:
+        if len(new_lst) == 0:
+            new_lst.append(i)
+        elif ver_rep(new_lst,i):
+            new_lst.append(i)
 
-                else:
-                    new_lst.append(lst[i])
 
 
     return new_lst

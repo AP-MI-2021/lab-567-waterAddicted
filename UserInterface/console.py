@@ -23,6 +23,7 @@ def show_menu():
     print('2.5   Ordonarea obiectelor crescător după prețul de achiziție.')
     print('2.6   Afișarea sumelor prețurilor pentru fiecare locație.')
     print('2.7   Undo.')
+    print('r     Redo.')
     print('a.    Afisare')
     print('x.    Exit.')
 
@@ -37,7 +38,7 @@ def handle_add(obiecte):
         nume = input('Dati numele obiectului:')
         descriere = input('Dati descrierea obiectului:')
         pret = float(input('Dati pretul obiectului:'))
-        locatie = input('Dati locatia obiectului obiectului:')
+        locatie = input('Dati locatia obiectului formata din  exact 4 litere:')
         print('Adaugarea s-a efectuat cu succes!')
         return create(obiecte,id_obiect,nume,descriere,pret,locatie)
     except ValueError as ve:
@@ -65,7 +66,7 @@ def handle_modify(obiecte):
         nume = input('Dati noul nume al obiectului:')
         descriere = input('Dati noua descrierea a obiectului:')
         pret = float(input('Dati noul pret al obiectului:'))
-        locatie = input('Dati noua locatie a obiectului:')
+        locatie = input('Dati noua locatie a obiectului formata din  exact 4 litere:')
         print(f'Modificarea obiectului cu id-ul: {id_obiect},s-a efectuat succes!')
         return update(obiecte,creeaza_obiect(id_obiect,nume,descriere,pret,locatie))
     except ValueError as ve:
@@ -149,6 +150,7 @@ def handle_cel_mai_mare_pret_din_ficare_loc(obiecte):
     :return:
     '''
     lst = loc_sep(obiecte)
+    print(lst)
     for i in lst:
         p_maxim = -1
         for obiect in obiecte:
@@ -185,15 +187,16 @@ def handle_afisare_sum_pret_loc(obiecte):
 
 
 
-def handle_undo(versions_list, current_version):
-    if current_version > 1:
-        current_version -=1
-        del versions_list[current_version]
-        return versions_list, current_version
-    else:
-        print('Ati ajuns la ultima versiune!')
-    return versions_list, current_version
+def handle_undo(list_versions, current_version):
+    if current_version < 0:
+        raise ValueError("Can't undo anymore!")
+    return list_versions[current_version]
 
+
+def handle_redo(current_version,list_versions):
+    if current_version == len(list_versions) :
+        raise ValueError("You're running on the latest version.")
+    return list_versions[current_version]
 
 
 def run_ui(obiecte):
@@ -203,15 +206,15 @@ def run_ui(obiecte):
     :return:
     '''
     versions_list = [obiecte]
-    current_version = 1
+    current_version = 0
     while True:
         show_menu()
         optiune = input('Optiunea aleasa: ')
         if optiune == '2.1':
             obiecte,versions_list,current_version = handle_crud(obiecte,versions_list,current_version)
         elif optiune == '2.2':
-            fosta_loc = input('Introduceti fosta locatie:')
-            noua_loc = input('Introduceti noua locatie:')
+            fosta_loc = input('Introduceti fosta locatie :')
+            noua_loc = input('Introduceti noua locatie formata din  exact 4 litere:')
             obiecte = handle_mutare_obicete_din_loc_in_altul(obiecte,fosta_loc,noua_loc)
             versions_list,current_version = list_versions(versions_list,current_version,obiecte)
             print(f'Toate obiectele care se afla in locatia {fosta_loc} au fost mutate cu succes in locatia {noua_loc}!')
@@ -233,9 +236,20 @@ def run_ui(obiecte):
         elif optiune == '2.6':
             handle_afisare_sum_pret_loc(obiecte)
         elif optiune == '2.7':
-            versions_list, current_version = handle_undo(versions_list, current_version)
-            obiecte = versions_list[current_version - 1]
-            print('Undo efectuat cu succes!')
+            try:
+                current_version -= 1
+                obiecte = handle_undo(versions_list, current_version)
+                print("Undo!")
+            except ValueError as ve:
+                current_version += 1
+                print("Error:", ve)
+        elif optiune == 'r':
+            try:
+                current_version += 1
+                obiecte = handle_redo(current_version, versions_list)
+            except ValueError as ve:
+                current_version -= 1
+                print("Error:", ve)
         elif optiune == 'a':
             handle_show_all(obiecte)
         elif optiune == 'x':

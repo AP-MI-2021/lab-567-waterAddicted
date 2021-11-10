@@ -10,7 +10,7 @@ def change_location(lista: list, sursa: str, destinatie: str):
     :return: lista cu obiectele mutate din locatia sursa, in locatia destinatie
     """
     if sursa == '' or destinatie == '' or len(sursa) != 4 or len(destinatie) != 4:
-        raise ValueError('Dati locatiile sursa si destinatie nenule, de exact 4 caractere')
+        raise ValueError('Dati sursa si destinatia nenule, de exact 4 caractere')
     rezultat = []
     for element in lista:
         if get_locatie(element) != sursa:
